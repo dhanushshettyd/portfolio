@@ -138,12 +138,26 @@ export function CertificationsSection() {
                   <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.16em] text-silver">
                     PDF Certificate
                   </p>
-                  <p className="mt-1 text-[11px] font-light text-muted-foreground">
-                    Click View to open
-                  </p>
                 </div>
 
-                <span className="absolute top-3 left-3 rounded-full border border-border bg-background/85 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-silver backdrop-blur-md">
+                {CERT_FILES[cert.id] && (
+                  <iframe
+                    src={`${CERT_FILES[cert.id]}#toolbar=0&navpanes=0&scrollbar=0&view=Fit`}
+                    title={`${cert.title} preview`}
+                    loading="lazy"
+                    tabIndex={-1}
+                    className="pointer-events-none absolute inset-0 h-full w-full border-0 bg-white"
+                  />
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => openCert(cert)}
+                  aria-label={`View ${cert.title} certificate`}
+                  className="absolute inset-0 z-10 cursor-pointer"
+                />
+
+                <span className="absolute top-3 left-3 z-20 rounded-full border border-border bg-background/85 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-silver backdrop-blur-md">
                   {cert.category}
                 </span>
               </div>
@@ -246,7 +260,7 @@ export function CertificationsSection() {
                   <MagnifyingGlassMinus size={16} weight="light" />
                 </button>
                 <span className="min-w-12 text-center text-xs tabular-nums text-silver">
-                  {Math.round(zoom * 100)}%
+                  {zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`}
                 </span>
                 <button
                   type="button"
@@ -271,7 +285,11 @@ export function CertificationsSection() {
               {activeFile ? (
                 <iframe
                   key={`${activeCert.id}-${zoom}`}
-                  src={`${activeFile}#toolbar=0&navpanes=0&zoom=${Math.round(zoom * 100)}`}
+                  src={
+                    zoom === 1
+                      ? `${activeFile}#toolbar=0&navpanes=0&view=Fit`
+                      : `${activeFile}#toolbar=0&navpanes=0&zoom=${Math.round(zoom * 100)}`
+                  }
                   title={`${activeCert.title} certificate`}
                   className="h-[72vh] w-full rounded-xl border border-border bg-white"
                 />
