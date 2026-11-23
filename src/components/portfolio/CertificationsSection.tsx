@@ -82,7 +82,7 @@ export function CertificationsSection() {
   const activeFile = activeCert ? CERT_FILES[activeCert.id] : undefined;
 
   const openCert = (cert: CertificateItem) => {
-    setZoom(1);
+    setZoom(0.75);
     setActiveCert(cert);
   };
 
@@ -260,7 +260,7 @@ export function CertificationsSection() {
                   <MagnifyingGlassMinus size={16} weight="light" />
                 </button>
                 <span className="min-w-12 text-center text-xs tabular-nums text-silver">
-                  {zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`}
+                  {Math.round(zoom * 100)}%
                 </span>
                 <button
                   type="button"
@@ -285,11 +285,7 @@ export function CertificationsSection() {
               {activeFile ? (
                 <iframe
                   key={`${activeCert.id}-${zoom}`}
-                  src={
-                    zoom === 1
-                      ? `${activeFile}#toolbar=0&navpanes=0&view=Fit`
-                      : `${activeFile}#toolbar=0&navpanes=0&zoom=${Math.round(zoom * 100)}`
-                  }
+                  src={`${activeFile}#toolbar=0&navpanes=0&zoom=${Math.round(zoom * 100)}`}
                   title={`${activeCert.title} certificate`}
                   className="h-[72vh] w-full rounded-xl border border-border bg-white"
                 />
