@@ -75,14 +75,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "DHANUSH SHETTY. D — Developer Portfolio" },
+      { title: "Dhanush Shetty. D — Developer Portfolio" },
       {
         name: "description",
         content:
           "Personal developer portfolio of Dhanush Shetty. D — Computer & Communication Engineering student building software, AI, and hardware solutions.",
       },
-      { name: "author", content: "Dhanush Shetty. D" },
-      { property: "og:title", content: "DHANUSH SHETTY. D — Developer Portfolio" },
+      { name: "author", content: "Dhanush Shetty D" },
+      { property: "og:title", content: "Dhanush Shetty. D — Developer Portfolio" },
       {
         property: "og:description",
         content:
