@@ -79,7 +79,7 @@ export function AboutSection() {
 
           <div data-about-reveal className="lg:col-span-7">
             <h3 className="text-2xl font-medium tracking-[-0.02em] text-foreground sm:text-3xl">
-              Hello, I&apos;m Dhanush Shetty.
+              Hello, I&apos;m Dhanush Shetty. D
             </h3>
 
             <div className="mt-6 space-y-4 text-base leading-relaxed font-light text-text-secondary">
