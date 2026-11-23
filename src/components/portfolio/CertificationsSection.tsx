@@ -2,16 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
+  ArrowUpRight,
   Certificate,
-  DownloadSimple,
   Eye,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
   Star,
-  UploadSimple,
   X,
 } from "@phosphor-icons/react";
-import { toast } from "sonner";
 import {
   CERTIFICATES,
   HACKERRANK_SKILL_BADGE,
@@ -27,31 +25,25 @@ const CATEGORIES: readonly CertificateCategory[] = [
   "Events",
 ];
 
-interface UploadedCertificateFile {
-  dataUrl: string;
-  fileName: string;
-  mimeType: string;
-}
+// Each certificate id points to its PDF in public/images/certificates
+const CERT_FILES: Record<string, string> = {
+  "ai-skills-passport": "/images/certificates/ai-skills-passport.pdf",
+  "c-programming-infosys": "/images/certificates/c-programming.pdf",
+  "csharp-basic-hackerrank": "/images/certificates/csharp-basic.pdf",
+  "intro-unix-infosys": "/images/certificates/intro-unix.pdf",
+  "intro-iot-skill-india": "/images/certificates/intro-iot.pdf",
+  "codekala-3": "/images/certificates/codekala-3.pdf",
+  "inventra-26-pathpulse": "/images/certificates/inventra-pathpulse.pdf",
+  "nexora-techsprint-2k26": "/images/certificates/nexora-techsprint.pdf",
+};
 
-const STORAGE_KEY = "ds-portfolio-uploaded-certs-v1";
+const HACKERRANK_PROFILE_URL = "https://www.hackerrank.com/profile/dhanushshettyd15";
 
 export function CertificationsSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [category, setCategory] = useState<CertificateCategory>("All");
-  const [uploads, setUploads] = useState<Record<string, UploadedCertificateFile>>({});
-  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
   const [activeCert, setActiveCert] = useState<CertificateItem | null>(null);
   const [zoom, setZoom] = useState(1);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setUploads(JSON.parse(raw) as Record<string, UploadedCertificateFile>);
-    } catch {
-      // ignore storage errors
-    }
-  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -87,56 +79,12 @@ export function CertificationsSection() {
   }, [activeCert]);
 
   const filtered = filterCertificatesByCategory(CERTIFICATES, category);
+  const activeFile = activeCert ? CERT_FILES[activeCert.id] : undefined;
 
-  const triggerUpload = (certId: string) => {
-    setUploadTargetId(certId);
-    uploadInputRef.current?.click();
+  const openCert = (cert: CertificateItem) => {
+    setZoom(1);
+    setActiveCert(cert);
   };
-
-  const handleFileChange = (file: File | undefined) => {
-    if (!file || !uploadTargetId) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : null;
-      if (!dataUrl) return;
-      const entry: UploadedCertificateFile = {
-        dataUrl,
-        fileName: file.name,
-        mimeType: file.type || "application/octet-stream",
-      };
-      setUploads((prev) => {
-        const next = { ...prev, [uploadTargetId]: entry };
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // file too large for localStorage; keep in session memory
-        }
-        return next;
-      });
-      toast.success("Certificate file attached", {
-        description: `${file.name} is ready to view and download.`,
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDownload = (cert: CertificateItem) => {
-    const uploaded = uploads[cert.id];
-    if (!uploaded) {
-      toast("Original certificate file not uploaded yet", {
-        description: "Upload the original image or PDF first to enable downloading.",
-      });
-      return;
-    }
-    const a = document.createElement("a");
-    a.href = uploaded.dataUrl;
-    a.download = uploaded.fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-
-  const activeUpload = activeCert ? uploads[activeCert.id] : undefined;
 
   return (
     <section id="certifications" ref={sectionRef} className="relative bg-surface-secondary py-24 sm:py-32">
@@ -177,86 +125,51 @@ export function CertificationsSection() {
           </div>
         </div>
 
-        <input
-          ref={uploadInputRef}
-          type="file"
-          accept="image/*,.pdf"
-          className="hidden"
-          onChange={(e) => {
-            handleFileChange(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
-
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {filtered.map((cert) => {
-            const uploaded = uploads[cert.id];
-            const isImage = uploaded?.mimeType.startsWith("image/");
-            return (
-              <article
-                key={cert.id}
-                data-cert-reveal
-                className="glass-panel group flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-silver/60"
-              >
-                <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden border-b border-border bg-background">
-                  {uploaded && isImage ? (
-                    <img
-                      src={uploaded.dataUrl}
-                      alt={`${cert.title} certificate`}
-                      className="h-full w-full object-cover grayscale transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="monochrome-grain flex h-full w-full flex-col items-center justify-center p-5 text-center">
-                      <Certificate size={28} weight="light" className="text-silver/70" />
-                      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.16em] text-silver">
-                        {uploaded ? uploaded.fileName : "Original File Placeholder"}
-                      </p>
-                      <p className="mt-1 text-[11px] font-light text-muted-foreground">
-                        {uploaded ? "PDF attached — click View" : "Attach original certificate file"}
-                      </p>
-                    </div>
-                  )}
-
-                  <span className="absolute top-3 left-3 rounded-full border border-border bg-background/85 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-silver backdrop-blur-md">
-                    {cert.category}
-                  </span>
-                </div>
-
-                <div className="flex flex-1 flex-col p-5">
-                  <p className="text-[11px] font-medium text-silver">{cert.issuer}</p>
-                  <h3 className="mt-1.5 text-base font-medium leading-snug text-foreground">
-                    {cert.title}
-                  </h3>
-                  <p className="mt-1 text-xs font-light text-muted-foreground">
-                    {cert.type} · {cert.date}
+          {filtered.map((cert) => (
+            <article
+              key={cert.id}
+              data-cert-reveal
+              className="glass-panel group flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-silver/60"
+            >
+              <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden border-b border-border bg-background">
+                <div className="monochrome-grain flex h-full w-full flex-col items-center justify-center p-5 text-center">
+                  <Certificate size={32} weight="light" className="text-silver/80" />
+                  <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.16em] text-silver">
+                    PDF Certificate
                   </p>
-
-                  <div className="mt-5 flex items-center gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setZoom(1);
-                        setActiveCert(cert);
-                      }}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-silver"
-                    >
-                      <Eye size={14} weight="light" />
-                      View Certificate
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => triggerUpload(cert.id)}
-                      aria-label={`Upload original file for ${cert.title}`}
-                      title="Attach original certificate file"
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-silver transition-colors hover:border-silver hover:text-foreground"
-                    >
-                      <UploadSimple size={14} weight="light" />
-                    </button>
-                  </div>
+                  <p className="mt-1 text-[11px] font-light text-muted-foreground">
+                    Click View to open
+                  </p>
                 </div>
-              </article>
-            );
-          })}
+
+                <span className="absolute top-3 left-3 rounded-full border border-border bg-background/85 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-silver backdrop-blur-md">
+                  {cert.category}
+                </span>
+              </div>
+
+              <div className="flex flex-1 flex-col p-5">
+                <p className="text-[11px] font-medium text-silver">{cert.issuer}</p>
+                <h3 className="mt-1.5 text-base font-medium leading-snug text-foreground">
+                  {cert.title}
+                </h3>
+                <p className="mt-1 text-xs font-light text-muted-foreground">
+                  {cert.type} · {cert.date}
+                </p>
+
+                <div className="mt-5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => openCert(cert)}
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-silver"
+                  >
+                    <Eye size={14} weight="light" />
+                    View Certificate
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
 
         {/* HackerRank Java 5-Star Skill Badge (distinct from course certificates) */}
@@ -282,17 +195,28 @@ export function CertificationsSection() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 self-start rounded-full border border-border bg-card px-4 py-2.5 md:self-center">
-              {Array.from({ length: HACKERRANK_SKILL_BADGE.stars }).map((_, idx) => (
-                <Star key={idx} size={16} weight="fill" className="text-foreground" />
-              ))}
-              <span className="ml-2 text-xs font-medium tracking-wider text-silver">5-STAR</span>
+            <div className="flex flex-col items-start gap-3 md:items-end">
+              <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5">
+                {Array.from({ length: HACKERRANK_SKILL_BADGE.stars }).map((_, idx) => (
+                  <Star key={idx} size={16} weight="fill" className="text-foreground" />
+                ))}
+                <span className="ml-2 text-xs font-medium tracking-wider text-silver">5-STAR</span>
+              </div>
+              <a
+                href={HACKERRANK_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-full bg-foreground px-5 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-silver"
+              >
+                <ArrowUpRight size={14} weight="light" />
+                View on HackerRank
+              </a>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Lightbox Modal with Zoom & Download */}
+      {/* Certificate viewer */}
       {activeCert && (
         <div
           role="dialog"
@@ -303,19 +227,19 @@ export function CertificationsSection() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="glass-panel flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl"
+            className="glass-panel flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl"
           >
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-6 py-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">{activeCert.title}</h3>
                 <p className="text-xs font-light text-text-secondary">
-                  {activeCert.issuer} · {activeCert.type} · {activeCert.date}
+                  {[activeCert.issuer, activeCert.type, activeCert.date].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setZoom((z) => Math.max(0.75, Number((z - 0.25).toFixed(2))))}
+                  onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.25).toFixed(2))))}
                   aria-label="Zoom out"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface-secondary text-silver hover:border-silver hover:text-foreground"
                 >
@@ -334,22 +258,6 @@ export function CertificationsSection() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => triggerUpload(activeCert.id)}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface-secondary px-3.5 text-xs font-medium text-silver hover:border-silver hover:text-foreground"
-                >
-                  <UploadSimple size={14} weight="light" />
-                  {activeUpload ? "Replace File" : "Upload File"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDownload(activeCert)}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-xs font-medium text-primary-foreground hover:bg-silver"
-                >
-                  <DownloadSimple size={14} weight="light" />
-                  Download
-                </button>
-                <button
-                  type="button"
                   onClick={() => setActiveCert(null)}
                   aria-label="Close certificate preview"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface-secondary text-silver hover:border-silver hover:text-foreground"
@@ -359,26 +267,19 @@ export function CertificationsSection() {
               </div>
             </div>
 
-            <div className="flex flex-1 items-center justify-center overflow-auto bg-background p-8">
-              {activeUpload && activeUpload.mimeType.startsWith("image/") ? (
-                <img
-                  src={activeUpload.dataUrl}
-                  alt={`${activeCert.title} full certificate`}
-                  style={{ transform: `scale(${zoom})` }}
-                  className="max-h-[64vh] origin-center rounded-xl border border-border object-contain transition-transform duration-200"
+            <div className="flex-1 bg-background p-3 sm:p-4">
+              {activeFile ? (
+                <iframe
+                  key={`${activeCert.id}-${zoom}`}
+                  src={`${activeFile}#toolbar=0&navpanes=0&zoom=${Math.round(zoom * 100)}`}
+                  title={`${activeCert.title} certificate`}
+                  className="h-[72vh] w-full rounded-xl border border-border bg-white"
                 />
               ) : (
-                <div className="max-w-md rounded-2xl border border-dashed border-border bg-card/70 p-10 text-center">
+                <div className="mx-auto max-w-md rounded-2xl border border-dashed border-border bg-card/70 p-10 text-center">
                   <Certificate size={40} weight="light" className="mx-auto text-silver" />
                   <p className="mt-4 text-sm font-medium text-foreground">
-                    {activeUpload
-                      ? `Attached: ${activeUpload.fileName}`
-                      : "Original Certificate Not Uploaded Yet"}
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed font-light text-text-secondary">
-                    {activeUpload
-                      ? "Use the Download button above to save the attached original document."
-                      : "No synthetic certificate is displayed here. Attach your original certificate image or PDF to inspect and download it."}
+                    Certificate file not available
                   </p>
                 </div>
               )}
