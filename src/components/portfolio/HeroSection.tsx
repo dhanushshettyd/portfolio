@@ -96,7 +96,7 @@ export function HeroSection({ ready, onNavigate }: HeroSectionProps) {
               loading="eager"
               onLoad={() => setSplineLoaded(true)}
               onError={() => setSplineFailed(true)}
-              className={`pointer-events-auto h-full w-full border-0 grayscale contrast-125 transition-opacity duration-1000 ${
+              className={`pointer-events-none h-full w-full border-0 grayscale contrast-125 transition-opacity duration-1000 ${
                 splineLoaded ? "opacity-80" : "opacity-0"
               }`}
             />
