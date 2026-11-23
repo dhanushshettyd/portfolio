@@ -1,46 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  ArrowUpRight,
-  CheckCircle,
-  GithubLogo,
-  Trophy,
-  UploadSimple,
-} from "@phosphor-icons/react";
+import { ArrowUpRight, CheckCircle, GithubLogo, Trophy } from "@phosphor-icons/react";
 import { PROJECTS, type ProjectItem } from "@/data/portfolio";
 
-const STORAGE_PREFIX = "ds-portfolio-project-img-";
-
 function ProjectCard({ project }: { project: ProjectItem }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>(project.imageUrl);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(`${STORAGE_PREFIX}${project.id}`);
-      if (saved) setPreviewUrl(saved);
-    } catch {
-      // ignore storage errors
-    }
-  }, [project.id]);
-
-  const handleUpload = (file: File | undefined) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : null;
-      if (!result) return;
-      setPreviewUrl(result);
-      try {
-        localStorage.setItem(`${STORAGE_PREFIX}${project.id}`, result);
-      } catch {
-        // ignore quota errors
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   return (
     <article
       data-project-card
@@ -48,14 +12,14 @@ function ProjectCard({ project }: { project: ProjectItem }) {
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-border bg-background">
         <img
-          src={previewUrl}
+          src={project.imageUrl}
           alt={`${project.title} project showcase`}
           loading="lazy"
           className="h-full w-full object-cover object-top grayscale contrast-105 transition-transform duration-700 ease-out group-hover:scale-105"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/75 via-transparent to-background/20" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/75 via-transparent to-background/10" />
 
-        <div className="absolute top-4 left-4 flex items-center gap-2">
+        <div className="absolute bottom-4 left-4 flex items-center gap-2">
           <span className="rounded-full border border-silver/35 bg-background/85 px-3 py-1 text-xs font-medium tracking-[0.18em] text-silver backdrop-blur-md">
             {project.number}
           </span>
@@ -66,22 +30,6 @@ function ProjectCard({ project }: { project: ProjectItem }) {
             </span>
           )}
         </div>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleUpload(e.target.files?.[0])}
-        />
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          className="absolute right-4 bottom-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3 py-1.5 text-[11px] font-medium text-silver opacity-0 backdrop-blur-md transition-all group-hover:opacity-100 focus:opacity-100 hover:border-silver hover:text-foreground"
-        >
-          <UploadSimple size={13} weight="light" />
-          Replace Preview
-        </button>
       </div>
 
       <div className="flex flex-1 flex-col p-7 sm:p-8">
