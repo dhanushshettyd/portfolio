@@ -15,7 +15,7 @@ function ProjectCard({ project }: { project: ProjectItem }) {
           src={project.imageUrl}
           alt={`${project.title} project showcase`}
           loading="lazy"
-          className="h-full w-full object-cover object-top grayscale contrast-105 transition-transform duration-700 ease-out group-hover:scale-105"
+          className="h-full w-full object-cover object-top contrast-105 transition-transform duration-700 ease-out group-hover:scale-105"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/75 via-transparent to-background/10" />
 
