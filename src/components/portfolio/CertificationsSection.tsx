@@ -146,7 +146,9 @@ export function CertificationsSection() {
                     title={`${cert.title} preview`}
                     loading="lazy"
                     tabIndex={-1}
-                    className="pointer-events-none absolute inset-0 h-full w-full border-0 bg-white"
+                    className={`pointer-events-none absolute inset-0 h-full w-full border-0 bg-white ${
+                      cert.id === "nexora-techsprint-2k26" ? "scale-[1.9]" : ""
+                    }`}
                   />
                 )}
 
