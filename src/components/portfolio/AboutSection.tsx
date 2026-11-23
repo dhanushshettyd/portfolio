@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  Buildings,
-  Compass,
-  GraduationCap,
-  MapPin,
-  UploadSimple,
-} from "@phosphor-icons/react";
+import { Buildings, Compass, GraduationCap, MapPin } from "@phosphor-icons/react";
 import { ABOUT_INFO_CARDS, PORTFOLIO_CONFIG } from "@/data/portfolio";
 
 const ICON_MAP = {
@@ -17,22 +11,9 @@ const ICON_MAP = {
   compass: Compass,
 } as const;
 
-const STORAGE_KEY = "ds-portfolio-profile-photo";
-
 export function AboutSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [photoUrl, setPhotoUrl] = useState<string>(PORTFOLIO_CONFIG.profileImageUrl);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setPhotoUrl(saved);
-    } catch {
-      // ignore storage errors
-    }
-  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -57,22 +38,6 @@ export function AboutSection() {
 
     return () => ctx.revert();
   }, []);
-
-  const handlePhotoUpload = (file: File | undefined) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : null;
-      if (!result) return;
-      setPhotoUrl(result);
-      try {
-        localStorage.setItem(STORAGE_KEY, result);
-      } catch {
-        // skip persisting oversized image
-      }
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -104,27 +69,11 @@ export function AboutSection() {
               className="group relative mx-auto aspect-[4/5] max-w-md overflow-hidden rounded-3xl border border-silver/30 bg-card transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-silver/70 hover:shadow-[0_0_55px_-12px_oklch(1_0_0_/_26%)]"
             >
               <img
-                src={photoUrl}
-                alt="Dhanush Shetty. D portrait"
+                src={PORTFOLIO_CONFIG.profileImageUrl}
+                alt="Dhanush Shetty D portrait"
                 className="h-full w-full object-cover object-top grayscale contrast-110 transition-transform duration-500 group-hover:scale-105"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute right-4 bottom-4 inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-2 text-xs font-medium text-silver opacity-0 backdrop-blur-md transition-all group-hover:opacity-100 focus:opacity-100 hover:border-silver hover:text-foreground"
-              >
-                <UploadSimple size={14} weight="light" />
-                Replace Photo
-              </button>
             </div>
           </div>
 
